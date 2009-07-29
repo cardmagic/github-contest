@@ -285,3 +285,13 @@ Migrating to CreateUserRepos (20090729213718)
   [4;36;1mSQL (4.2ms)[0m   [0;1mSELECT count(*) AS count_all FROM `repos` [0m
   [4;35;1mSQL (3.9ms)[0m   [0mSELECT count(*) AS count_all FROM `repos` [0m
   [4;36;1mSQL (4.1ms)[0m   [0;1mSELECT count(*) AS count_all FROM `repos` [0m
+  [4;35;1mSQL (7.9ms)[0m   [0mSELECT count(*) AS count_all FROM `repos` [0m
+  [4;36;1mSQL (8.4ms)[0m   [0;1mSELECT count(*) AS count_all FROM `repos` [0m
+  [4;35;1mSQL (9.3ms)[0m   [0mSELECT count(*) AS count_all FROM `repos` [0m
+  [4;36;1mSQL (8.4ms)[0m   [0;1mSELECT count(*) AS count_all FROM `repos` [0m
+  [4;35;1mSQL (6.3ms)[0m   [0mSELECT count(*) AS count_all FROM `users` [0m
+  [4;36;1mRepo Load (0.2ms)[0m   [0;1mSELECT * FROM `repos` ORDER BY users_count DESC LIMIT 20[0m
+  [4;35;1mRepo Load (0.2ms)[0m   [0mSELECT * FROM `repos` ORDER BY users_count DESC LIMIT 20[0m
+  [4;36;1mRepo Load (0.2ms)[0m   [0;1mSELECT * FROM `repos` WHERE (`repos`.`id` = 28) [0m
+  [4;35;1mRepo Load (0.3ms)[0m   [0mSELECT * FROM `repos` WHERE (`repos`.`id` = 28) [0m
+  [4;36;1mSQL (15.5ms)[0m   [0;1mSELECT count(*) AS count_all FROM `repos` [0m
