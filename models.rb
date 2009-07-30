@@ -120,7 +120,16 @@ class User
   end
   
   def popular_repos
-    (Repo.repos_popularity[0,100].map{|repo| Repo.find(repo[0])} - repos)
+    if @internal_rank.size > 0
+      recs = @internal_rank.sort_by{|x|-x[1]}[0,100].map{|repo| repo[0]}
+      if recs.size < 10
+        recs + (Repo.repos_popularity[0,100].map{|repo| Repo.find(repo[0])} - repos - recs)
+      else
+        recs
+      end
+    else
+      (Repo.repos_popularity[0,100].map{|repo| Repo.find(repo[0])} - repos)
+    end
   end
 end
 
