@@ -111,10 +111,14 @@ class User
     @internal_rank = Hash.new(0)
     repos.map{|repo| repo.users - [self]}.flatten.each do |user|
       user.repos.each do |repo|
-        @internal_rank[repo] += 1
+        @internal_rank[repo] += 1 
       end
     end
     @internal_rank.each do |repo, rank|
+      if popular_languages.include?(repo.lang)
+        rank += 5
+        @internal_rank[repo] = rank
+      end
       repo.internal_popularity = rank
     end
   end
