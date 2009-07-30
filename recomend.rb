@@ -2,8 +2,8 @@ require 'reader'
 require 'writer'
 
 module Contest
-  def recomend(candidates, users, repos)
-    @candidates, @users, @repos = candidates, users, repos
+  def recomend(candidates, users, repos, repos_popularity)
+    @candidates, @users, @repos, @repos_popularity = candidates, users, repos, repos_popularity
     answers = []
     @candidates.each do |cand_id|
       answers << find_candidate_recomendations(@users[cand_id])
@@ -14,7 +14,7 @@ module Contest
   def find_candidate_recomendations(user)
     recomendations = []
     recomendations += find_unwatched_base_forks(user)
-    recomendations += [17,302,654,76,616,58,8,866,84,29]
+    recomendations += @repos_popularity[0,100].map{|repo|repo[0]} - user.repos
     "#{user.user_id}:#{recomendations[0,10].join(',')}"
   end
   
@@ -33,6 +33,6 @@ module Contest
 end
 
 repos = Reader.load_repos('download/repos.txt')
-users, repos = Reader.load_user_data('download/data.txt', repos)
+users, repos, repos_popularity = Reader.load_user_data('download/data.txt', repos)
 candidates, users = Reader.load_test_candidates('download/test.txt', users)
-Writer.write_results('results.txt', Contest.recomend(candidates, users, repos))
+Writer.write_results('results.txt', Contest.recomend(candidates, users, repos, repos_popularity))

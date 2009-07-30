@@ -17,6 +17,7 @@ module Reader
   
   def load_user_data(file_path, repos)
     users = {}
+    repos_popularity = Hash.new(0)
     
     File.open(file_path) do |file|
       file.each do |line|
@@ -26,10 +27,11 @@ module Reader
         users[user_id] ||= Utils::User.new(user_id)
         users[user_id].watch_repo(repo_id)
         repos[repo_id].watched_by_user(user_id)
+        repos_popularity[repo_id] += 1
       end
     end
     
-    [users, repos]
+    [users, repos, repos_popularity.sort_by{|repo|-repo[1]}]
   end
   
   def load_test_candidates(file_path, users)
