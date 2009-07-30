@@ -1,3 +1,5 @@
+require 'time'
+
 class Repo
   attr_accessor :id, :username, :name, :created_at, :fork_id, :users, :popularity, :lang, :size
   
@@ -99,7 +101,7 @@ class User
     if similar == []
       return []
     else
-      (similar - repos).sort_by{|repo|-repo.popularity}.uniq
+      (similar - repos).sort_by{|repo|-repo.popularity}.uniq.select{|repo| Time.parse(repo.created_at) > Time.now - 3600*24*365}
     end
   end
   
