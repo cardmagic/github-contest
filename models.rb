@@ -75,7 +75,7 @@ class User
   end
   
   def recommendations
-    #internal_popularity_rank
+    internal_popularity_rank
     recs = []
     recs += named_similar
     (forked_masters + recs + popular_repos).map{|repo|repo.id}.select{|repo_id|repo_id > 0}[0,10]
