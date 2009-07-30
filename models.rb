@@ -26,7 +26,7 @@ class Repo
   end
   
   def self.find(id)
-    Repo.repos[id]
+    Repo.repos[id.to_i] || Repo.new(id.to_i)
   end
   
   def initialize(string)
@@ -74,9 +74,9 @@ class User
   
   def recommendations
     recs = []
-    recs += named_similar
     recs += forked_masters
-    (recs + popular)[0,10]
+    recs += named_similar
+    (recs.sort_by{|repo|-repo.popularity} + popular)[0,10].map{|repo|repo.id}
   end
   
   def repo_ids
@@ -85,7 +85,7 @@ class User
   
   def forked_masters
     forks = repos.map{|repo| repo.fork_id}.compact.uniq
-    forks - repo_ids
+    (forks - repo_ids).map{|repo_id| Repo.find(repo_id)}
   end
   
   def named_similar
@@ -93,12 +93,12 @@ class User
     if similar == []
       return []
     else
-      (similar - repos).sort_by{|repo|-repo.popularity}.map{|repo| repo.id}.uniq
+      (similar - repos).sort_by{|repo|-repo.popularity}.uniq
     end
   end
   
   def popular
-    Repo.repos_popularity[0,100].map{|repo| repo[0]} - repos.map{|repo| repo.id}
+    Repo.repos_popularity[0,100].map{|repo| Repo.find(repo[0])} - repos
   end
 end
 
