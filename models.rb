@@ -75,8 +75,11 @@ class User
   def recommendations
     recs = []
     recs += named_similar
-    recs = (recs + popular).select{|repo| repo.lang == popular_language} if popular_language
-#    recs = recs.sort_by{|repo|-repo.popularity}
+    if popular_language
+      recs += popular.select{|repo| repo.lang == popular_language}
+    else
+      recs += popular
+    end
     (forked_masters + recs)[0,10].map{|repo|repo.id}
   end
   
@@ -94,7 +97,6 @@ class User
   def forked_masters
     forks = repos.map{|repo| repo.fork_id}.compact.uniq
     forks = (forks - repo_ids).map{|repo_id| Repo.find(repo_id)}
-#    forks.select{|repo|repo.popularity > 1}
   end
   
   def named_similar
