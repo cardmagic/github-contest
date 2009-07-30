@@ -78,9 +78,7 @@ class User
     internal_popularity_rank
     recs = []
     recs += named_similar
-    recs = (forked_masters + recs + popular_repos).map{|repo|repo.id}.select{|repo_id|repo_id > 0}[0,10]
-    #reset_internal_rank
-    recs
+    (forked_masters + double_forked_masters + recs + popular_repos).map{|repo|repo.id}.select{|repo_id|repo_id > 0}[0,10]
   end
   
   def popular_languages
@@ -100,6 +98,11 @@ class User
     forks = (forks - repo_ids).map{|repo_id| Repo.find(repo_id)}
   end
   
+  def double_forked_masters
+    forks = repos.map{|repo| Repo.find(repo.fork_id)}.compact.uniq.map{|repo| repo.fork_id}.compact.uniq
+    forks = (forks - forked_masters - repo_ids).map{|repo_id| Repo.find(repo_id)}
+  end
+  
   def named_similar
     similar = repos.map{|repo| Repo.named_repos[repo.username] - [repo]}.flatten
     if similar == []
@@ -111,20 +114,25 @@ class User
   
   def internal_popularity_rank
     @internal_rank = Hash.new(0)
-    repos.map{|repo| repo.users - [self]}.flatten.each do |user|
+    
+    users = repos.map{|repo| repo.users - [self]}.flatten.uniq
+    
+    users.each do |user|
       user.repos.each do |repo|
         @internal_rank[repo] += 1 
       end
     end
     
+    top10 = @internal_rank.sort_by{|x|-x[1]}[0,10].map{|repo| repo[0]}
+    best_users = users.select{|user| (user.repos & top10).size == 10}[0,10]
+    best_repos = best_users.map{|user|user.repos}.flatten.uniq
+    
     @internal_rank.each do |repo, rank|
+      if best_repos.include?(repo)
+        rank += 5
+        @internal_rank[repo] = rank
+      end
       repo.internal_popularity = rank
-    end
-  end
-  
-  def reset_internal_rank
-    @internal_rank.each do |repo, rank|
-      repo.internal_popularity = nil
     end
   end
   
