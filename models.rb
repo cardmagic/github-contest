@@ -1,5 +1,5 @@
 class Repo
-  attr_accessor :id, :username, :name, :created_at, :fork_id, :users
+  attr_accessor :id, :username, :name, :created_at, :fork_id, :users, :popularity, :lang, :size
   
   def self.repos
     @@repos
@@ -8,6 +8,14 @@ class Repo
   def self.repos=(repos)
     @@repos = repos
   end
+
+  def self.named_repos
+    @@named_repos
+  end
+
+  def self.named_repos=(named_repos)
+    @@named_repos = named_repos
+  end
   
   def self.repos_popularity
     @@repos_popularity
@@ -15,6 +23,10 @@ class Repo
   
   def self.repos_popularity=(re)
     @@repos_popularity = re.sort_by{|x|-x[1]}
+  end
+  
+  def self.find(id)
+    Repo.repos[id]
   end
   
   def initialize(string)
@@ -30,10 +42,12 @@ class Repo
       @id = string
     end
     @users = []
+    @popularity = 0
   end
   
   def followed(user)
     @users << user
+    @popularity += 1
   end
 end
 
@@ -61,16 +75,42 @@ class User
   def recommendations
     recs = []
     recs += forked_masters
-    recs += popular
-    recs[0,10]
+    recs += named_similar
+    (recs + popular)[0,10]
+  end
+  
+  def repo_ids
+    @repo_ids ||= repos.map{|repo| repo.id}
   end
   
   def forked_masters
     forks = repos.map{|repo| repo.fork_id}.compact.uniq
-    forks - repos.map{|repo| repo.id}
+    forks - repo_ids
+  end
+  
+  def named_similar
+    similar = repos.map{|repo| Repo.named_repos[repo.username] - [repo]}.flatten
+    if similar == []
+      return []
+    else
+      (similar - repos).sort_by{|repo|-repo.popularity}.map{|repo| repo.id}.uniq
+    end
   end
   
   def popular
     Repo.repos_popularity[0,100].map{|repo| repo[0]} - repos.map{|repo| repo.id}
+  end
+end
+
+class Lang
+  attr_accessor :langs
+  def initialize(string)
+    rest = string.split(":")
+    if repo = Repo.find(rest.shift.to_i)
+      langs = rest.shift.split(",")
+      @langs = langs.map{|lang|lang.split(";")}.sort_by{|lang| -lang[1].to_i}
+      repo.lang = @langs.first[0]
+      repo.size = @langs.first[1]
+    end
   end
 end
