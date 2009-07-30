@@ -14,7 +14,7 @@ module Contest
   def find_candidate_recomendations(user)
     recomendations = []
     recomendations += find_unwatched_base_forks(user)
-    recomendations += @repos_popularity[0,100].map{|repo|repo[0]} - user.repos
+    recomendations += (@repos_popularity[0,100].map{|repo|repo[0]} - user.repos - recomendations)
     "#{user.user_id}:#{recomendations[0,10].join(',')}"
   end
   
