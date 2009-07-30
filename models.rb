@@ -79,7 +79,7 @@ class User
     recs = []
     recs += named_similar
     recs = (forked_masters + recs + popular_repos).map{|repo|repo.id}.select{|repo_id|repo_id > 0}[0,10]
-    reset_internal_rank
+    #reset_internal_rank
     recs
   end
   
