@@ -76,7 +76,8 @@ class User
     recs = []
     recs += forked_masters
     recs += named_similar
-    (recs.sort_by{|repo|-repo.popularity} + popular)[0,10].map{|repo|repo.id}
+#    recs = recs.sort_by{|repo|-repo.popularity}
+    (recs + popular)[0,10].map{|repo|repo.id}
   end
   
   def repo_ids
@@ -85,7 +86,8 @@ class User
   
   def forked_masters
     forks = repos.map{|repo| repo.fork_id}.compact.uniq
-    (forks - repo_ids).map{|repo_id| Repo.find(repo_id)}
+    forks = (forks - repo_ids).map{|repo_id| Repo.find(repo_id)}
+    forks.select{|repo|repo.popularity > 1}
   end
   
   def named_similar
