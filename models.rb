@@ -1,7 +1,7 @@
 require 'time'
 
 class Repo
-  attr_accessor :id, :username, :name, :created_at, :fork_id, :users, :popularity, :lang, :size
+  attr_accessor :id, :username, :name, :created_at, :fork_id, :users, :popularity, :internal_popularity, :lang, :size
   
   def self.repos
     @@repos
@@ -75,9 +75,10 @@ class User
   end
   
   def recommendations
+    #internal_popularity_rank
     recs = []
     recs += named_similar
-    (forked_masters + recs + popular_repos)[0,10].map{|repo|repo.id}
+    (forked_masters + recs + popular_repos).map{|repo|repo.id}.select{|repo_id|repo_id > 0}[0,10]
   end
   
   def popular_languages
@@ -102,12 +103,24 @@ class User
     if similar == []
       return []
     else
-      (similar - repos).sort_by{|repo|-repo.popularity}.uniq
+      (similar - repos).sort_by{|repo|-(repo.internal_popularity || repo.popularity)}.uniq
+    end
+  end
+  
+  def internal_popularity_rank
+    @internal_rank = Hash.new(0)
+    repos.map{|repo| repo.users - [self]}.flatten.each do |user|
+      user.repos.each do |repo|
+        @internal_rank[repo] += 1
+      end
+    end
+    @internal_rank.each do |repo, rank|
+      repo.internal_popularity = rank
     end
   end
   
   def popular_repos
-    (Repo.repos_popularity[0,100].map{|repo| Repo.find(repo[0])} - repos).select{|repo| popular_languages.include?(repo.lang)}
+    (Repo.repos_popularity[0,100].map{|repo| Repo.find(repo[0])} - repos)
   end
 end
 
