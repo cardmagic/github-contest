@@ -66,7 +66,7 @@ class User
   end
   
   def forked_masters
-    forks = repos.map{|repo| repo.fork_id}.compact
+    forks = repos.map{|repo| repo.fork_id}.compact.uniq
     forks - repos.map{|repo| repo.id}
   end
   
