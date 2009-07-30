@@ -74,8 +74,8 @@ class User
   
   def recommendations
     recs = []
-    recs += forked_masters
     recs += named_similar
+    recs += forked_masters
     (recs + popular)[0,10]
   end
   
