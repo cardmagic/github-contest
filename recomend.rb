@@ -1,38 +1,40 @@
-require 'reader'
-require 'writer'
+require 'models'
 
-module Contest
-  def recomend(candidates, users, repos, repos_popularity)
-    @candidates, @users, @repos, @repos_popularity = candidates, users, repos, repos_popularity
-    answers = []
-    @candidates.each do |cand_id|
-      answers << find_candidate_recomendations(@users[cand_id])
-    end
-    answers
+repos = {}
+users = {}
+repos_popularity = Hash.new(0)
+
+puts "Reading repos"
+
+File.open("download/repos.txt") do |repos_file|
+  repos_file.each do |line|
+    repo = Repo.new(line.strip)
+    repos[repo.id] = repo
   end
-  
-  def find_candidate_recomendations(user)
-    recomendations = []
-    recomendations += find_unwatched_base_forks(user)
-    recomendations += (@repos_popularity[0,100].map{|repo|repo[0]} - user.repos - recomendations)
-    "#{user.user_id}:#{recomendations[0,10].join(',')}"
-  end
-  
-  def find_unwatched_base_forks(user)
-    base_forks = []
-    user.repos.each do |repo_id|
-      user_repo = @repos[repo_id]
-      if user_repo.forked? && !user.repos.include?(user_repo.fork_base) && !base_forks.include?(user_repo.fork_base)
-        base_forks << user_repo.fork_base
-      end
-    end
-    base_forks
-  end
-  
-  module_function :recomend, :find_candidate_recomendations, :find_unwatched_base_forks
 end
+Repo.repos = repos
 
-repos = Reader.load_repos('download/repos.txt')
-users, repos, repos_popularity = Reader.load_user_data('download/data.txt', repos)
-candidates, users = Reader.load_test_candidates('download/test.txt', users)
-Writer.write_results('results.txt', Contest.recomend(candidates, users, repos, repos_popularity))
+puts "Reading users"
+
+File.open("download/data.txt") do |data_file|
+  data_file.each do |line|
+    user_id, repo_id = line.strip.split(":").map{|x|x.to_i}
+    user = (users[user_id] ||= User.new(user_id))
+    user.follow(repos[repo_id])
+    repos_popularity[repo_id] += 1
+  end
+end
+Repo.repos_popularity = repos_popularity
+User.users = users
+
+puts "Writing results"
+
+File.open("results.txt", "w") do |results|
+  File.open("download/test.txt") do |test_file|
+    test_file.each do |line|
+      user_id = line.to_i
+      user = users[user_id] || User.new(user_id)
+      results << "#{user_id}:#{user.recommendations.join(",")}\n"
+    end
+  end
+end
