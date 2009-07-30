@@ -37,7 +37,7 @@ class Repo
       rest = rest.split(",")
       @name = rest.shift
       @created_at = rest.shift
-      @fork_id = rest.shift
+      @fork_id = rest.shift.to_i
     else
       @id = string
     end
@@ -75,12 +75,7 @@ class User
   def recommendations
     recs = []
     recs += named_similar
-    if popular_language
-      recs += popular.select{|repo| repo.lang == popular_language}
-    else
-      recs += popular
-    end
-    (forked_masters + recs)[0,10].map{|repo|repo.id}
+    (forked_masters + recs + popular_repos)[0,10].map{|repo|repo.id}
   end
   
   def popular_language
@@ -95,7 +90,7 @@ class User
   end
   
   def forked_masters
-    forks = repos.map{|repo| repo.fork_id}.compact.uniq
+    forks = repos.select{|repo| repo.fork_id && Repo.find(repo.fork_id) && Repo.find(repo.fork_id).size && repo.size}.select{|repo| Repo.find(repo.fork_id).size > repo.size }.map{|repo| repo.fork_id}.uniq
     forks = (forks - repo_ids).map{|repo_id| Repo.find(repo_id)}
   end
   
@@ -104,11 +99,11 @@ class User
     if similar == []
       return []
     else
-      (similar - repos).sort_by{|repo|-repo.popularity}.uniq
+      (similar - repos).sort_by{|repo|-repo.popularity}.uniq.select{|repo| repo.size && repo.size > 2000}
     end
   end
   
-  def popular
+  def popular_repos
     Repo.repos_popularity[0,100].map{|repo| Repo.find(repo[0])} - repos
   end
 end
@@ -121,7 +116,7 @@ class Lang
       langs = rest.shift.split(",")
       @langs = langs.map{|lang|lang.split(";")}.sort_by{|lang| -lang[1].to_i}
       repo.lang = @langs.first[0]
-      repo.size = @langs.first[1]
+      repo.size = @langs.first[1].to_i
     end
   end
 end
