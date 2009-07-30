@@ -84,6 +84,7 @@ class User
     begin
       @popular_languages ||= repos.map{|repo| repo.lang}
     rescue
+      []
     end
   end
   
@@ -101,12 +102,12 @@ class User
     if similar == []
       return []
     else
-      (similar - repos).sort_by{|repo|-repo.popularity}.uniq.select{|repo| Time.parse(repo.created_at) > Time.now - 3600*24*365}
+      (similar - repos).sort_by{|repo|-repo.popularity}.uniq
     end
   end
   
   def popular_repos
-    Repo.repos_popularity[0,100].map{|repo| Repo.find(repo[0])} - repos
+    (Repo.repos_popularity[0,100].map{|repo| Repo.find(repo[0])} - repos).select{|repo| popular_languages.include?(repo.lang)}
   end
 end
 
