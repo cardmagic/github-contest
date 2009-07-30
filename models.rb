@@ -76,7 +76,9 @@ class User
   
   def recommendations
     internal_popularity_rank
-    (forked_masters + double_forked_masters + named_similar + popular_repos).map{|repo|repo.id}.uniq.select{|repo_id|repo_id > 0}[0,10]
+    recs = []
+    recs += named_similar
+    (forked_masters + double_forked_masters + recs + popular_repos).map{|repo|repo.id}.select{|repo_id|repo_id > 0}[0,10]
   end
   
   def popular_languages
@@ -121,7 +123,15 @@ class User
       end
     end
     
+    top10 = @internal_rank.sort_by{|x|-x[1]}[0,10].map{|repo| repo[0]}
+    best_users = users.select{|user| (user.repos & top10).size == 10}[0,10]
+    best_repos = best_users.map{|user|user.repos}.flatten.uniq
+    
     @internal_rank.each do |repo, rank|
+      if best_repos.include?(repo)
+        rank += 5
+        @internal_rank[repo] = rank
+      end
       repo.internal_popularity = rank
     end
   end
