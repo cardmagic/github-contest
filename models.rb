@@ -90,7 +90,7 @@ class User
   end
   
   def forked_masters
-    forks = repos.select{|repo| repo.fork_id && Repo.find(repo.fork_id) && Repo.find(repo.fork_id).size && repo.size}.select{|repo| Repo.find(repo.fork_id).size > repo.size }.map{|repo| repo.fork_id}.uniq
+    forks = repos.map{|repo| repo.fork_id}.compact.uniq
     forks = (forks - repo_ids).map{|repo_id| Repo.find(repo_id)}
   end
   
