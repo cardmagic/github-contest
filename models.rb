@@ -87,7 +87,7 @@ class User
   def forked_masters
     forks = repos.map{|repo| repo.fork_id}.compact.uniq
     forks = (forks - repo_ids).map{|repo_id| Repo.find(repo_id)}
-    forks.select{|repo|repo.popularity > 1}
+#    forks.select{|repo|repo.popularity > 1}
   end
   
   def named_similar
