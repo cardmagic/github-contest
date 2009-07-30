@@ -99,7 +99,7 @@ class User
     if similar == []
       return []
     else
-      (similar - repos).sort_by{|repo|-repo.popularity}.uniq.select{|repo| repo.size.nil? || repo.size > 10000}
+      (similar - repos).sort_by{|repo|-repo.popularity}.uniq.select{|repo| repo.size.nil? || repo.size > 1000}
     end
   end
   
