@@ -78,7 +78,9 @@ class User
     internal_popularity_rank
     recs = []
     recs += named_similar
-    (forked_masters + recs + popular_repos).map{|repo|repo.id}.select{|repo_id|repo_id > 0}[0,10]
+    recs = (forked_masters + recs + popular_repos).map{|repo|repo.id}.select{|repo_id|repo_id > 0}[0,10]
+    reset_internal_rank
+    recs
   end
   
   def popular_languages
@@ -114,12 +116,15 @@ class User
         @internal_rank[repo] += 1 
       end
     end
+    
     @internal_rank.each do |repo, rank|
-      if popular_languages.include?(repo.lang)
-        rank += 5
-        @internal_rank[repo] = rank
-      end
       repo.internal_popularity = rank
+    end
+  end
+  
+  def reset_internal_rank
+    @internal_rank.each do |repo, rank|
+      repo.internal_popularity = nil
     end
   end
   
