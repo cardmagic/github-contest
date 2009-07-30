@@ -75,12 +75,12 @@ class User
   def recommendations
     recs = []
     recs += named_similar
-    (forked_masters + recs + popular_repos)[0,10].map{|repo|repo.id}
+    (forked_masters + recs + popular_repos).select{|repo|popular_languages.include?(repo.lang)}[0,10].map{|repo|repo.id}
   end
   
-  def popular_language
+  def popular_languages
     begin
-      @popular_language ||= repos.inject(Hash.new(0)){|languages, repo| languages[repo.lang] += 1}.sort_by{|langs| -langs[1]}.first[0]
+      @popular_languages ||= repos.map{|repo| repo.lang}
     rescue
     end
   end
