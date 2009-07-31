@@ -1,5 +1,3 @@
-require 'linalg'
-
 class Repo
   attr_accessor :id, :username, :name, :created_at, :fork_id, :users, :popularity, :internal_popularity, :lang, :size
   
@@ -106,7 +104,7 @@ class User
         recs += Repo.apriori[repo.id].select{|ap|!repo_ids.include?(ap[0])}[0,10]
       end
     end
-    ((forked_master_ids + recs.sort_by{|ap|-ap[1]}.map{|ap|ap[0]}).uniq - [0])[0,10]
+    ((recs.sort_by{|ap|-ap[1]}.map{|ap|ap[0]} + forked_master_ids + (named_similar + popular_repos).map{|repo|repo.id}).uniq - [0])[0,10]
   end
   
   def recommendations
@@ -114,7 +112,9 @@ class User
     (forked_masters + svd + named_similar + popular_repos).map{|repo|repo.id}.select{|repo_id|repo_id > 0}[0,10]
   end
   
-  def svd    
+  def svd
+    require 'linalg'
+      
     mine = Linalg::DMatrix[Repo.sample_repos.map {|repo_id| repos.include?(Repo.repos[repo_id]) ? 1 : 0}]
     mineEmbed = mine * $u2 * $eig2.inverse
     
@@ -187,7 +187,7 @@ class User
   end
   
   def popular_repos
-    if @internal_rank.size > 0
+    if @internal_rank && @internal_rank.size > 0
       recs = @internal_rank.sort_by{|x|-x[1]}[0,100].map{|repo| repo[0]}
       if recs.size < 10
         recs + (Repo.repos_popularity[0,100].map{|repo| Repo.find(repo[0])} - repos - recs)
