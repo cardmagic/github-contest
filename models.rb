@@ -106,7 +106,7 @@ class User
         recs += Repo.apriori[repo.id].select{|ap|!repo_ids.include?(ap[0])}[0,10]
       end
     end
-    recs.sort_by{|ap|-ap[1]}.map{|ap|ap[0]}.uniq[0,10]
+    ((forked_master_ids + recs.sort_by{|ap|-ap[1]}.map{|ap|ap[0]}).uniq - [0])[0,10]
   end
   
   def recommendations
@@ -158,6 +158,11 @@ class User
   def forked_masters
     forks = repos.map{|repo| repo.fork_id}.compact.uniq
     forks = (forks - repo_ids).map{|repo_id| Repo.find(repo_id)}
+  end
+
+  def forked_master_ids
+    forks = repos.map{|repo| repo.fork_id}.compact.uniq
+    forks = (forks - repo_ids)
   end
   
   def named_similar

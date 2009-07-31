@@ -69,9 +69,9 @@ end
 
 Repo.apriori = get_analyzed
 
-IRB.start_session(Kernel.binding)
-
 =begin
+
+IRB.start_session(Kernel.binding)
 
 puts "Sampling repos"
 
