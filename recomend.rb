@@ -57,7 +57,7 @@ def get_analyzed
     tmp.each do |other_repo_id, count|
       result << [other_repo_id, (10000*count/total).to_i]
     end
-    anal[repo_id] = result.sort_by{|ap|-ap[1]}[0,100]
+    anal[repo_id] = result.sort_by{|ap|-ap[1]}[0,25]
     transactions.delete(repo_id)
     result = nil
     anal

@@ -104,7 +104,7 @@ class User
         recs += Repo.apriori[repo.id].select{|ap|!repo_ids.include?(ap[0])}[0,10]
       end
     end
-    ((recs.sort_by{|ap|-ap[1]}.map{|ap|ap[0]} + forked_master_ids + (popular_repos + named_similar).map{|repo|repo.id}).uniq - [0])[0,10]
+    (forked_master_ids + (recs.sort_by{|ap|-ap[1]}.map{|ap|ap[0]} + (popular_repos + named_similar).map{|repo|repo.id}).uniq - [0])[0,10]
   end
   
   def recommendations
