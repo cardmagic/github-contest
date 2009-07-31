@@ -100,9 +100,13 @@ class User
   
   def apriori_recommendations
     recs = []
+    repo_ids = repos.map{|x|x.id}
     repos.each do |repo|
-      Repo.apriori[repo.id].sort_by{|ap|-ap[1]}.select{|ap|ap[0]}
+      if Repo.apriori.has_key?(repo.id)
+        recs += Repo.apriori[repo.id].select{|ap|!repo_ids.include?(ap[0])}[0,10]
+      end
     end
+    recs.sort_by{|ap|-ap[1]}.map{|ap|ap[0]}.uniq[0,10]
   end
   
   def recommendations

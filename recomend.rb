@@ -38,29 +38,40 @@ File.open("download/lang.txt") do |lang_file|
     Lang.new(line.strip)
   end
 end
-=begin
 
-transactions = []
-Repo.repos.each do |repo|
-  repo[1].users.map{|user|user.repos - [repo[1]]}.flatten.each do |other_repo|
-    transactions << [repo[1].id, other_repo]
-  end
+def get_analyzed
+  puts "Building transactions"
+
+  transactions = Repo.repos.values.inject({}) do |trans, repo|
+    trans[repo.id] ||= []
+    trans[repo.id] += repo.users.map{|user|user.repos.map{|r|r.id} - [repo.id]}.flatten
+    trans
+  end;nil
+
+  puts "Analyzing transactions"
+
+  analyzed = transactions.inject({}) do |anal, v|
+    repo_id, corr_repos = v
+    total = corr_repos.size.to_f
+    result = []
+    tmp = corr_repos.inject({}) {|rs, other_repo_id| rs[other_repo_id] ? (rs[other_repo_id] += 1) : (rs[other_repo_id] = 1); rs}
+    tmp.each do |other_repo_id, count|
+      result << [other_repo_id, (10000*count/total).to_i]
+    end
+    anal[repo_id] = result.sort_by{|ap|-ap[1]}[0,50]
+    transactions.delete(repo_id)
+    result = nil
+    anal
+  end;nil
+  
+  analyzed
 end
 
-rules = Apriori.find_association_rules(transactions,
-                          :min_items => 2,
-                          :max_items => 5,
-                          :min_support => 1, 
-                          :max_support => 100, 
-                          :min_confidence => 20)
-
-Repo.apriori = Hash.new([])
-rules.each do |rule|
-  Repo.apriori[rule.antecedent.first] << [rule.consequent, rule.confidence]
-end
+Repo.apriori = get_analyzed
 
 IRB.start_session(Kernel.binding)
-=end
+
+=begin
 
 puts "Sampling repos"
 
@@ -90,6 +101,7 @@ $v2 = Linalg::DMatrix.join_columns((0...2).to_a.map{|x|vt.column(x)})
 
 puts "Finding eigenvalues"
 $eig2 = Linalg::DMatrix.columns [s.column(0).to_a.flatten[0,2], s.column(1).to_a.flatten[0,2]]
+=end
 
 puts "Writing results"
 
