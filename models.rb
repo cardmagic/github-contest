@@ -1,4 +1,4 @@
-require 'time'
+require 'linalg'
 
 class Repo
   attr_accessor :id, :username, :name, :created_at, :fork_id, :users, :popularity, :internal_popularity, :lang, :size
@@ -9,6 +9,22 @@ class Repo
 
   def self.repos=(repos)
     @@repos = repos
+  end
+  
+  def self.apriori
+    @@apriori
+  end
+  
+  def self.apriori=(apriori)
+    @@apriori = apriori
+  end
+
+  def self.sample_repos
+    @@sample_repos
+  end
+
+  def self.sample_repos=(repos)
+    @@sample_repos = repos
   end
 
   def self.named_repos
@@ -64,6 +80,14 @@ class User
     @@users = users
   end
   
+  def self.sample_users
+    @@sample_users
+  end
+
+  def self.sample_users=(users)
+    @@sample_users = users
+  end
+  
   def initialize(id)
     @id = id
     @repos = []
@@ -74,11 +98,45 @@ class User
     @repos << repo
   end
   
+  def apriori_recommendations
+    recs = []
+    repos.each do |repo|
+      Repo.apriori[repo.id].sort_by{|ap|-ap[1]}.select{|ap|ap[0]}
+    end
+  end
+  
   def recommendations
     internal_popularity_rank
-    recs = []
-    recs += named_similar
-    (forked_masters + recs + popular_repos).map{|repo|repo.id}.select{|repo_id|repo_id > 0}[0,10]
+    (forked_masters + svd + named_similar + popular_repos).map{|repo|repo.id}.select{|repo_id|repo_id > 0}[0,10]
+  end
+  
+  def svd    
+    mine = Linalg::DMatrix[Repo.sample_repos.map {|repo_id| repos.include?(Repo.repos[repo_id]) ? 1 : 0}]
+    mineEmbed = mine * $u2 * $eig2.inverse
+    
+    user_sim = {}
+    $v2.rows.each_with_index do |x, count|
+      user_sim[count] = (mineEmbed.transpose.dot(x.transpose)) / (x.norm * mineEmbed.norm)
+    end
+    
+    if similar_users = user_sim.delete_if {|k,sim| sim.nan? || sim < 0.9 }.sort {|a,b| b[1] <=> a[1] }
+      not_watched = []
+      my_items = mine.transpose.to_a.flatten
+
+      how_many = similar_users.size < 10 ? similar_users.size : 10
+      
+      how_many.times do |j|
+        similar_users_items = $m.column(similar_users[j][0]).transpose.to_a.flatten
+
+        my_items.each_index do |i|
+          not_watched << Repo.repos[Repo.sample_repos[i]] if my_items[i] == 0 and similar_users_items[i] != 0
+        end
+      end
+    
+      not_watched.sort_by {|repo| -repo.popularity }.uniq
+    else
+      []
+    end
   end
   
   def popular_languages
@@ -142,6 +200,33 @@ class Lang
       @langs = langs.map{|lang|lang.split(";")}.sort_by{|lang| -lang[1].to_i}
       repo.lang = @langs.first[0]
       repo.size = @langs.first[1].to_i
+    end
+  end
+end
+
+require 'irb'
+
+module IRB
+  def self.start_session(binding)
+    IRB.setup(nil)
+
+    workspace = WorkSpace.new(binding)
+
+    if @CONF[:SCRIPT]
+      irb = Irb.new(workspace, @CONF[:SCRIPT])
+    else
+      irb = Irb.new(workspace)
+    end
+
+    @CONF[:IRB_RC].call(irb.context) if @CONF[:IRB_RC]
+    @CONF[:MAIN_CONTEXT] = irb.context
+
+    trap("SIGINT") do
+      irb.signal_handle
+    end
+
+    catch(:IRB_EXIT) do
+      irb.eval_input
     end
   end
 end
