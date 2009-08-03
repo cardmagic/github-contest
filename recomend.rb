@@ -55,9 +55,9 @@ def get_analyzed
     result = []
     tmp = corr_repos.inject({}) {|rs, other_repo_id| rs[other_repo_id] ? (rs[other_repo_id] += 1) : (rs[other_repo_id] = 1); rs}
     tmp.each do |other_repo_id, count|
-      result << [other_repo_id, (10000*count/total).to_i]
+      result << [other_repo_id, (10000*count/total).to_i, count]
     end
-    anal[repo_id] = result.sort_by{|ap|-ap[1]}[0,25]
+    anal[repo_id] = result.sort_by{|ap|-ap[1]}[0,100]
     transactions.delete(repo_id)
     result = nil
     anal
