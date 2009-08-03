@@ -38,6 +38,8 @@ File.open("download/lang.txt") do |lang_file|
   end
 end
 
+=begin
+
 def get_analyzed
   puts "Building transactions"
 
@@ -98,7 +100,6 @@ end
 
 User.apriori = get_user_analyzed
 
-=begin
 
 IRB.start_session(Kernel.binding)
 
@@ -141,7 +142,7 @@ File.open("results.txt", "w") do |results|
     test_file.each do |line|
       user_id = line.to_i
       user = users[user_id] || User.new(user_id)
-      results << "#{user_id}:#{user.apriori_recommendations.join(",")}\n"
+      results << "#{user_id}:#{user.recommendations.join(",")}\n"
     end
   end
 end
