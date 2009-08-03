@@ -70,6 +70,14 @@ end
 class User
   attr_accessor :id, :repos
   
+  def self.apriori
+    @@apriori
+  end
+  
+  def self.apriori=(apriori)
+    @@apriori = apriori
+  end
+
   def self.users
     @@users
   end
@@ -104,7 +112,13 @@ class User
         recs += Repo.apriori[repo.id].select{|ap|!repo_ids.include?(ap[0])}[0,10]
       end
     end
-    ((recs.sort_by{|ap|-(ap[1]*ap[2])}.map{|ap|ap[0]} + forked_master_ids + (named_similar + popular_repos).map{|repo|repo.id}).uniq - [0])[0,10]
+    recs = recs.sort_by{|ap|-ap[1]}.map{|ap|ap[0]}
+    
+    if similar_user = User.users[User.apriori[id]]
+      recs += (similar_user.repos - repos).sort_by{|repo|-repo.popularity}.map{|repo|repo.id}
+    end
+    
+    ((recs + forked_master_ids + (named_similar + popular_repos).map{|repo|repo.id}).uniq - [0])[0,10]
   end
   
   def recommendations

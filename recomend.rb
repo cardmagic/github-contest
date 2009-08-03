@@ -68,6 +68,36 @@ end
 
 Repo.apriori = get_analyzed
 
+def get_user_analyzed
+  puts "Building user transactions"
+
+  transactions = User.users.values.inject({}) do |trans, user|
+    trans[user.id] ||= []
+    trans[user.id] += user.repos.map{|repo|repo.users.map{|u|u.id} - [user.id]}.flatten
+    trans
+  end;nil
+
+  puts "Analyzing user transactions"
+
+  analyzed = transactions.inject({}) do |anal, v|
+    user_id, corr_users = v
+    total = corr_users.size.to_f
+    result = []
+    tmp = corr_users.inject({}) {|rs, other_user_id| rs[other_user_id] ? (rs[other_user_id] += 1) : (rs[other_user_id] = 1); rs}
+    tmp.each do |other_user_id, count|
+      result << [other_user_id, (10000*count/total).to_i, count]
+    end
+    anal[user_id] = result.sort_by{|ap|-ap[1]}.first
+    transactions.delete(user_id)
+    result = nil
+    anal
+  end;nil
+  
+  analyzed
+end
+
+User.apriori = get_user_analyzed
+
 =begin
 
 IRB.start_session(Kernel.binding)
