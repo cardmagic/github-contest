@@ -127,7 +127,7 @@ class User
   
   def recommendations
     #internal_popularity_rank
-    ((forked_masters).map{|repo|repo.id}+[1]).select{|repo_id|repo_id > 0}[0,10]
+    (double_forked_masters).map{|repo|repo.id}.select{|repo_id|repo_id > 0}[0,10]
   end
   
   def svd
@@ -175,6 +175,11 @@ class User
   
   def forked_masters
     forks = repos.map{|repo| repo.fork_id}.compact.uniq
+    forks = (forks - repo_ids).map{|repo_id| Repo.find(repo_id)}
+  end
+
+  def double_forked_masters
+    forks = forked_masters.map{|repo| repo.fork_id}.compact.uniq
     forks = (forks - repo_ids).map{|repo_id| Repo.find(repo_id)}
   end
 
