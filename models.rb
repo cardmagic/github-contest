@@ -126,8 +126,8 @@ class User
   end
   
   def recommendations
-    #internal_popularity_rank
-    (double_forked_masters).map{|repo|repo.id}.select{|repo_id|repo_id > 0}[0,50]
+    internal_popularity_rank
+    named_similar.map{|repo|repo.id}.select{|repo_id|repo_id > 0}[0,50]
   end
   
   def svd
