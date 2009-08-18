@@ -115,14 +115,14 @@ class User
           recs += Repo.apriori[repo.id].select{|ap|!repo_ids.include?(ap[0])}[0,10]
         end
       end
-      recs = recs.sort_by{|ap|-ap[1]}.map{|ap|ap[0]}
+      recs = recs.select{|ap|ap[2] > 5}.sort_by{|ap|-ap[1]}.map{|ap|ap[0]}
     
-      if similar_user = User.users[User.apriori[id]]
-        more_recs += (similar_user.repos - repos).sort_by{|repo|-repo.popularity}
-      end
+#      if similar_user = User.users[User.apriori[id]]
+#        more_recs += (similar_user.repos - repos).sort_by{|repo|-repo.popularity}
+#      end
     end
     
-    ((recs + forked_master_ids + (named_similar + more_recs + popular_repos).map{|repo|repo.id}).uniq - [0])[0,10]
+    recs
   end
   
   def recommendations

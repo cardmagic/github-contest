@@ -38,8 +38,6 @@ File.open("download/lang.txt") do |lang_file|
   end
 end
 
-=begin
-
 def get_analyzed
   puts "Building transactions"
 
@@ -69,6 +67,8 @@ def get_analyzed
 end
 
 Repo.apriori = get_analyzed
+
+=begin
 
 def get_user_analyzed
   puts "Building user transactions"
@@ -137,12 +137,12 @@ $eig2 = Linalg::DMatrix.columns [s.column(0).to_a.flatten[0,2], s.column(1).to_a
 
 puts "Writing results"
 
-File.open("results.txt", "w") do |results|
+File.open("results1.txt", "w") do |results|
   File.open("download/test.txt") do |test_file|
     test_file.each do |line|
       user_id = line.to_i
       user = users[user_id] || User.new(user_id)
-      results << "#{user_id}:#{user.recommendations.join(",")}\n"
+      results << "#{user_id}:#{user.apriori_recommendations.join(",")}\n"
     end
   end
 end
